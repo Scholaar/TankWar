@@ -16,3 +16,5 @@
 
 ### 后端说明文档
 
+1. 提供用户登录、注册接口（登录路径：“/login”，注册路径：“/register”）
+2. 提供socket通信接口（接口路径：“/socket/{uersId}” 注：完整路径是ws://domain:8080/socket/{userId}）
