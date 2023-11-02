@@ -8,8 +8,8 @@ import org.springframework.stereotype.Component;
 
 /**
  * @ClassName Coordinate
- * @Description TODO
- * @Author @O_o
+ * @Description 子弹类
+ * @Author @zhangh
  * @Date 2023/10/27 16:23
  * @Version 1.0
  */
