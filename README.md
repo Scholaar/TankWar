@@ -29,7 +29,7 @@
 2. 提供socket通信接口（接口路径：“/socket/{uersId}” 注：完整路径是ws://domain:8080/socket/{userId}）
    - 客户端发送socket连接建立的请求，后端根据uid分配session，并存储到一个Set集合中。该集合设为static，后续的多个socket管理，就只需维护此集合
    - 需要维护一个waitList的容器，每当远程客户端通过socket发来匹配请求，将该用户加入waitList。
-   - 需要创建一个GamePool类，该类用以维护Tank类和Bullet类（可以把该类具象成一个游戏盒子，一个盒子就是一局游戏）。
+   - 需要创建一个GamePool类，该类用以维护Tank类和Bullet类（可以把该类具象成一个游戏盒子，一个盒子就是一局游戏）。具体实现采用哈希表，将坦克类加入哈希表
      - 当waitList的表容量大于等于20？时，取出前二十，加入GamePool
      - Tank类由用户socket控制。
      - Bullet类的创建由用户socket通知创建。创建后交由GamePool管理，自主运行（异步）
@@ -38,3 +38,5 @@
      - 时间检测？？？
      - ………………
 
+> 0为up, 1为down, 2为left, 3为right
+> 速度为x单位/秒

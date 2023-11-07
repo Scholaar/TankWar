@@ -9,18 +9,18 @@ import org.springframework.stereotype.Component;
 
 import java.awt.*;
 
-/*
+/**
  * @Author @zhangh
- * @Description // 坦克属性类
+ * @Description 坦克属性类
  * @Date 14:51 2023/10/27
  **/
 @Getter
 @Setter
 @Component
 @Scope("prototype")     // 配置为原型作用域的Bean, 这意味着每次请求 Tank Bean 时都会创建一个新的实例。
-public class Tank {
-    @Autowired
-    private Coordinate coordinate;  // 坦克坐标
+public class Tank extends Coordinate {
+//    @Autowired
+//    private Coordinate coordinate;  // 坦克坐标
 
     @Autowired
     private ApplicationContext applicationContext;
@@ -38,7 +38,7 @@ public class Tank {
     }
 
     public Bullet fire(int speed, int direct) throws CloneNotSupportedException {
-        Bullet bullet = applicationContext.getBean(Bullet.class, this.coordinate.clone());
+        Bullet bullet = applicationContext.getBean(Bullet.class, this.clone());
         bullet.setSpeed(speed);
         bullet.setDirect(direct);
 
