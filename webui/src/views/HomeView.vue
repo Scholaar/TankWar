@@ -22,13 +22,11 @@
               <el-form-item label="密码">
                   <el-input type="password" v-model="loginForm.password" />
               </el-form-item>
-              <el-form-item label="重复密码" v-if="!formStatus.isLogin">
-                  <el-input type="password" v-model="loginForm.passwordRepeat" />
-              </el-form-item>
               <el-form-item>
                   <el-button round @click="switchFormStatus">{{ formStatus.actionText }}</el-button>
                   <div style="flex: 1;"></div>
-                  <el-button type="primary" round @click="loginStatus = !loginStatus">{{ formStatus.submitText }}</el-button>
+                  <el-button type="primary" round @click=login v-if="formStatus.isLogin">登录</el-button>
+                  <el-button type="primary" round @click=register v-if="!formStatus.isLogin">注册</el-button>
               </el-form-item>
               <!-- 如需重置密码功能，完成此部分 -->
               <!-- <el-form-item>
@@ -42,8 +40,12 @@
 </template>
 
 <script setup>
-import { ref } from 'vue'
+import { onMounted, ref } from 'vue'
 import router from '@/router'
+import request from '../utils/request';
+import useTokenStore from '@/stores/tokenStore'
+
+const tokenStore = useTokenStore()
 
 // static data
 const background = new URL('@/assets/bg.png', import.meta.url)
@@ -54,19 +56,55 @@ const loginForm = ref({
   name: '',
   email: '',
   password: '',
-  passwordRepeat: ''
 })
 
 const formStatus = ref({
   isLogin: true,
   actionText: '注册',
-  submitText: '登录'
 })
 
 const switchFormStatus = () => {
   formStatus.value.isLogin = !formStatus.value.isLogin;
   formStatus.value.actionText = formStatus.value.isLogin ? '注册' : '回到登录';
-  formStatus.value.submitText = formStatus.value.isLogin ? '登录' : '注册';
+}
+
+const login = () => {
+    if(loginForm.value.name == '' || loginForm.value.password == ''){
+        ElMessage({
+            message: "用户名或密码不能为空",
+            type: 'error',
+        })
+        return;
+    }
+    let js = {
+        "name": loginForm.value.name,
+        "password": loginForm.value.password
+    }
+    request.post('/api/login', js).then((res) => {
+        console.log(res);
+        tokenStore.token = res.token;
+        loginStatus.value = true;
+    })
+}
+
+const register = () => {
+    if(loginForm.value.name == '' || loginForm.value.email == '' || loginForm.value.password == ''){
+        ElMessage({
+            message: "信息不能为空",
+            type: 'error',
+        })
+        return;
+    }
+    let js = {
+        "name": loginForm.value.name,
+        "email": loginForm.value.email,
+        "password": loginForm.value.password
+    }
+    request.post('/api/register', js).then((res) => {
+        console.log(res);
+        switchFormStatus();
+    })
+
 }
 
 // 功能暂定
@@ -90,6 +128,11 @@ const switchFormStatus = () => {
 const play = () => {
   router.push('/playroom')
 }
+
+onMounted(() => {
+  // 检查是否登录
+  // loginStatus.value = true
+})
 </script>
 
 <style lang="less" scoped>
