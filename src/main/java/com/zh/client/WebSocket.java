@@ -10,10 +10,12 @@ import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Scope;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -34,6 +36,7 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Getter
 @Setter
 @EnableAsync
+@Scope("prototype") // 为什么加这个注解？详见"https://blog.csdn.net/weixin_46058733/article/details/128496652"
 public class WebSocket {
     // 与某个客户端的连接对话，需要凭此对客户端传输数据
     private Session session;
@@ -174,41 +177,3 @@ public class WebSocket {
     }
 
 }
-//    /**
-//     * 匹配用户
-//     *
-//     * @param userId 发起者id
-//     */
-//    public boolean matchUser(String userId, int user_nums) {
-//        assert (user_nums > 0);
-//        if (webSockets.size() <= user_nums) {
-//            return false;
-//        }
-//        String id = this.session.getId();
-//
-//        List<WebSocket> webSocketList = webSockets.stream().filter(item -> item.status == 1L);
-//
-//        return false;
-//    }
-
-//    @Resource
-//    private WebSocket webSocket;
-//
-//    public void testWebSocketOptions() {
-//        // 创建业务消息信息
-//        JSONObject obj = new JSONObject();
-//        obj.put("cmd", "topic");// 业务类型
-//        obj.put("msgId", "yourMsgId");// 消息id
-//        obj.put("msgTxt", "Your Message Content");// 消息内容
-//
-//        // 全体发送
-//        webSocket.sendAllMessage(obj.toJSONString());
-//
-//        // 单个用户发送 (userId为用户id)
-//        String userId = "someUserId";
-//        webSocket.sendOneMessage(userId, obj.toJSONString());
-//
-//        // 多个用户发送 (userIds为多个用户id，逗号‘,’分隔)
-//        String[] userIds = {"user1", "user2", "user3"};
-//        webSocket.sendMoreMessage(userIds, obj.toJSONString());
-//    }

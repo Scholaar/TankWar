@@ -35,7 +35,8 @@ public class Listener {
      * 匹配用户
      *
      */
-    @Async("taskExecutor")
+//    @Async("taskExecutor")
+    @Async
     public void matchUser() {
         // 1.获取待匹配用户
         // 2.判断用户人数是否满足匹配条件 满足后进行下一步 不满足重新循环
