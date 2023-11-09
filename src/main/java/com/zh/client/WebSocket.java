@@ -31,7 +31,7 @@ import java.util.concurrent.atomic.AtomicInteger;
  */
 @Component
 @Slf4j
-@ServerEndpoint("/websocket/{userId}")
+@ServerEndpoint("/websocket/{username}")
 @Getter
 public class WebSocket {
 
@@ -65,6 +65,7 @@ public class WebSocket {
     public void onClose() {
         webSockets.remove(this);
         sessionPool.remove(username);
+        waitingQueue.remove(this);
         log.info("[Websocket 消息] 连接断开，总数为: {}", webSockets.size());
     }
 
@@ -90,7 +91,7 @@ public class WebSocket {
     @OnError
     public void onError(Session session, Throwable error) {
         log.error("用户错误，原因： {}", error.getMessage());
-        error.printStackTrace();
+//        error.printStackTrace();
     }
 
     public void sendAllMessage(String message) {
