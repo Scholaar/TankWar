@@ -1,179 +1,156 @@
 package com.zh.client;
 
-import com.alibaba.fastjson.JSONObject;
-import jakarta.annotation.Resource;
+import com.zh.model.Tank;
+import com.zh.model.UserContainer;
 import jakarta.websocket.*;
-import jakarta.websocket.server.PathParam;
-import jakarta.websocket.server.ServerEndpoint;
+import jakarta.websocket.server.*;
+
 import lombok.Getter;
-import lombok.Setter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
-import org.springframework.context.annotation.Scope;
-import org.springframework.scheduling.annotation.Async;
-import org.springframework.scheduling.annotation.EnableAsync;
 import org.springframework.stereotype.Component;
-import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
-import java.util.ArrayList;
+import java.io.IOException;
+import java.util.HashMap;
 import java.util.List;
+import java.util.Map;
+import java.util.Queue;
 import java.util.concurrent.ConcurrentHashMap;
 import java.util.concurrent.CopyOnWriteArraySet;
+import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
- * @ClassName WebSocket
- * @author @zhangh
- * @comment ws操作类
- * @date 2023/10/30 14:27
- * @version 1.0
+ * @ClassName CoordinateGenerator
+ * @Description socket消息生成类及管理类
+ * @Author @zhangh
+ * @Date 2023/11/9 21:16
+ * @Version 1.1
+ * @update  1.1 增加“开始游戏”的启动代码
  */
 @Component
 @Slf4j
-@ServerEndpoint("/websocket/{userId}")  // 接口路径：ws://localhost:8080/websocket/userId
+@ServerEndpoint("/websocket/{userId}")
 @Getter
-@Setter
-@EnableAsync
-@Scope("prototype") // 为什么加这个注解？详见"https://blog.csdn.net/weixin_46058733/article/details/128496652"
 public class WebSocket {
-    // 与某个客户端的连接对话，需要凭此对客户端传输数据
+
+    private static final CopyOnWriteArraySet<WebSocket> webSockets = new CopyOnWriteArraySet<>();
+    private static final ConcurrentHashMap<String, Session> sessionPool = new ConcurrentHashMap<>();
+    private static final AtomicInteger readyUserCount = new AtomicInteger(0);
+
+    // 新增等待队列
+    private static final Queue<WebSocket> waitingQueue = new LinkedBlockingQueue<>();
+
+    // 可能会有多个UserContainer实例（即对战人数达到10以上，每局对战5人的情况下）
+    // 我只是举个栗子，打个标记在这里，后续不想要可以删了[doge]
+    private Map<String, UserContainer> containerMap = new HashMap<>();
+
     private Session session;
-
-    private String userId;
-
-    private AtomicInteger readyUserCount = new AtomicInteger(0);
+    private String username;
 
     @Autowired
     private ApplicationContext applicationContext;
 
-    //concurrent包的线程安全Set，用来存放每个客户端对应的MyWebSocket对象。
-    //虽然@Component默认是单例模式的，但springboot还是会为每个websocket连接初始化一个bean，所以可以用一个静态set保存起来。
-    //  注：底下WebSocket是当前类名
-    private static CopyOnWriteArraySet<WebSocket> webSockets = new CopyOnWriteArraySet<>();
-
-    // 用来存在线连接用户信息
-    private static ConcurrentHashMap<String, Session> sessionPool = new ConcurrentHashMap<>();
-
-    /**
-     * 链接成功调用的方法
-     */
     @OnOpen
-    @Async("taskExecutor")  // 使用自定义线程池
-    public void onOpen(Session session, @PathParam(value = "userId") String userId) {
-        try {
-            this.session = session;
-            this.userId = userId;
-            webSockets.add(this);
-            sessionPool.put(userId, session);
-            log.info("[WebSocket 消息] 有新的连接，总数为:" + webSockets.size());
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+    public void onOpen(Session session, @PathParam("username") String username) {
+        this.session = session;
+        this.username = username;
+        webSockets.add(this);
+        sessionPool.put(username, session);
+        log.info("[WebSocket 消息] 有新的连接，总数为: {}", webSockets.size());
     }
 
-    /**
-     * 链接关闭调用的方法
-     */
     @OnClose
-    @Async("taskExecutor")
     public void onClose() {
-        try {
-            webSockets.remove(this);
-            sessionPool.remove(this.userId);
-            log.info("[Websocket 消息] 连接断开，总数为:" + webSockets.size());
-        } catch (Exception e) {
-            System.out.println(e);
-        }
+        webSockets.remove(this);
+        sessionPool.remove(username);
+        log.info("[Websocket 消息] 连接断开，总数为: {}", webSockets.size());
     }
 
-    /**
-     * 收到客户端消息后调用的方法
-     *
-     * @param message
-     */
     @OnMessage
-    @Async("taskExecutor")
     public void onMessage(String message) {
-        log.info("[Websocket 消息] 收到客户端消息:" + message);
+        log.info("[Websocket 消息] 收到客户端消息: {}", message);
         if ("isReady".equals(message)) {
+            // 进行计数
             int readyCount = readyUserCount.incrementAndGet();
-            System.out.println("加入第" + (readyCount % 5) + "号池");
+            log.info("加入第{}号池", readyCount % 5);
 
-            /*
-            if (readyCount % 5 == 0) {
-                // 当有 5 个就绪态用户时，将它们加入 Container
-                containers.get(containers.size() - 1).addUsers(getReadyUsers(5));
+            // 将当前 WebSocket 加入等待队列
+            waitingQueue.add(this);
+
+            if (waitingQueue.size() >= 5) {
+                // 当等待队列大小达到5时，处理等待者
+                handleWaitingQueue();
+                readyUserCount.set(readyUserCount.get() - 5);   // 减5，继续计数
             }
-             */
         }
     }
 
-    /** 发送错误时的处理
-     * @param session
-     * @param error
-     */
     @OnError
-    @Async("taskExecutor")
     public void onError(Session session, Throwable error) {
-        log.error("用户错误，原因：" + error.getMessage());
+        log.error("用户错误，原因： {}", error.getMessage());
         error.printStackTrace();
     }
 
-    // 此为广播消息
     public void sendAllMessage(String message) {
-        log.info("[websocket消息] 广播消息:"+message);
+        log.info("[websocket消息] 广播消息: {}", message);
         for (WebSocket webSocket : webSockets) {
-            try {
-                if (webSocket.session.isOpen()) {
-                    webSocket.session.getAsyncRemote().sendText(message);
-                }
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            sendMessage(webSocket.session, message);
         }
     }
 
-    // 此为单点消息
-    public void sendOneMessage(String userId, String message) {
-        Session session = sessionPool.get(userId);
+    public void sendOneMessage(String username, String message) {
+        Session session = sessionPool.get(username);
         if (session != null && session.isOpen()) {
-            try {
-                log.info("[websocket消息] 单点消息:"+message);
-                session.getAsyncRemote().sendText(message);
-            } catch (Exception e) {
-                e.printStackTrace();
-            }
+            log.info("[websocket消息] 单点消息: {}", message);
+            sendMessage(session, message);
         }
     }
 
-    // 此为单点消息(多人)
-    public void sendMoreMessage(String[] userIds, String message) {
-        for (String userId : userIds) {
-            Session session = sessionPool.get(userId);
-
+    public void sendMoreMessage(String[] usernames, String message) {
+        for (String username : usernames) {
+            Session session = sessionPool.get(username);
             if (session != null && session.isOpen()) {
-                try {
-                    log.info("[websocket消息] 单点消息:"+message);
-                    session.getAsyncRemote().sendText(message);
-                } catch (Exception e) {
-                    e.printStackTrace();
-                }
+                log.info("[websocket消息] 单点消息: {}", message);
+                sendMessage(session, message);
             }
         }
     }
 
-    /**
-     * @author @zhangh
-     * @Description 获取在线用户ID
-     * @Date 22:46 2023/10/30
-     */
-    public List<String> getUserIds() {
-        List<String> keyList = new ArrayList<>();
-        sessionPool.forEachKey(Long.MAX_VALUE, keyList::add);   // 将enumeration类型转成List类型
-
-        return keyList;
+    private void sendMessage(Session session, String message) {
+        try {
+            session.getBasicRemote().sendText(message);
+        } catch (IOException e) {
+            log.error("Error sending message to session: {}", e.getMessage());
+        }
     }
 
+    private void handleWaitingQueue() {
+        // 处理等待队列中的 WebSocket 实例，移入 Container 容器中
+        // 这里可以实现具体的逻辑，例如创建与等待者们相等username的Tank类
+        log.info("处理等待队列，移入 Container 容器");
+
+        UserContainer container = new UserContainer();
+        for (WebSocket webSocket : waitingQueue) {
+            Tank tank = applicationContext.getBean(Tank.class, webSocket.getUsername());
+            container.addTank(tank);
+
+            // 这里将 container 存储起来，供后续使用
+            containerMap.put(webSocket.getUsername(), container);
+        }
+
+        // container.getTanks() 返回一个包含五个 Tank 实例的 Set
+//        container.getTanks().forEach(tank -> {
+//            // 这里可以对每个 Tank 进行一些操作，例如设置坐标等
+//        });
+
+        // 这里可以对 containerMap 进行进一步的操作，或者将其存储在其他地方
+
+        waitingQueue.clear();
+    }
+
+    public List<String> getUsernames() {
+        return List.copyOf(sessionPool.keySet());
+    }
 }

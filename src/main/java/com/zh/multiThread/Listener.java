@@ -43,7 +43,7 @@ public class Listener {
         // 3.随机选取一名用户 调用匹配方法 匹配
         // 4.匹配成功后继续循环至步骤1
         while (true) {
-            List<String> userIds = webSocket.getUserIds();
+            List<String> userIds = webSocket.getUsernames();
             if (CollectionUtils.isEmpty(userIds)) {
                 if (userIds.size() < user_num) {
                     continue;

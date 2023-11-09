@@ -16,7 +16,7 @@ import org.springframework.stereotype.Component;
 @Getter
 @Setter
 @Component
-@Scope("prototype")
+//@Scope("prototype")
 public class Bullet extends Coordinate {
 //    private Coordinate coordinate;
 

@@ -10,9 +10,10 @@ import lombok.Data;
 @Data
 @Table(name = "users")
 public class UserModel {
-    @Id
-    private long id;
+//    @Id
+//    private long id;
 
+    @Id
     @Column(name = "username")
     private String username;
 
