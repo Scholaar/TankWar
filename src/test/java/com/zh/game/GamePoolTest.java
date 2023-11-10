@@ -1,5 +1,6 @@
 package com.zh.game;
 
+import com.zh.factory.TankFactory;
 import com.zh.game.GamePool;
 import com.zh.model.Bullet;
 import com.zh.model.CoordinateGenerator;
@@ -27,10 +28,13 @@ class GamePoolTest {
     @Autowired
     private CoordinateGenerator coordinateGenerator;
 
+    @Autowired
+    private TankFactory tankFactory;
+
     @Test
     void testCheckTankBulletCollision() {
         // 创建坦克
-        Tank tank = new Tank("player1");
+        Tank tank = tankFactory.createTank("player1");
         tank.setX(10);
         tank.setY(10);
 
