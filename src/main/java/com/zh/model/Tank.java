@@ -28,17 +28,9 @@ public class Tank extends Coordinate {
 
     private String username;    // 坦克的玩家号
 
-    @Autowired
-    private CoordinateGenerator coordinateGenerator;
-
-    public void setCoordinateGenerator(CoordinateGenerator coordinateGenerator) {
-        this.coordinateGenerator = coordinateGenerator;
-    }
-
-//    @Autowired
     public Tank(String username) {
         this.username = username;
-        Coordinate uniqueCoordinate = coordinateGenerator.generateUniqueCoordinate();
+        Coordinate uniqueCoordinate = applicationContext.getBean(CoordinateGenerator.class).generateUniqueCoordinate();
         setX(uniqueCoordinate.getX());
         setY(uniqueCoordinate.getY());
     }

@@ -135,7 +135,7 @@ public class WebSocket {
 
         UserContainer container = new UserContainer();
         for (WebSocket webSocket : waitingQueue) {
-            Tank tank = applicationContext.getBean(Tank.class, webSocket.getUsername());
+            Tank tank = new Tank(webSocket.getUsername());
             container.addTank(tank);
 
             // 这里将 container 存储起来，供后续使用
