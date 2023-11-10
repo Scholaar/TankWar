@@ -9,6 +9,7 @@ import lombok.Getter;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.ApplicationContext;
+import org.springframework.context.annotation.Bean;
 import org.springframework.stereotype.Component;
 
 import java.io.IOException;
@@ -153,5 +154,10 @@ public class WebSocket {
 
     public List<String> getUsernames() {
         return List.copyOf(sessionPool.keySet());
+    }
+
+    @Bean
+    public Map<String, UserContainer> getContainerMap() {
+        return this.containerMap;
     }
 }

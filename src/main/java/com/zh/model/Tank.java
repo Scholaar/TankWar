@@ -26,12 +26,17 @@ public class Tank extends Coordinate {
 
     private int speed = 1;  // 坦克速度
 
-//    private Color color = Color.red;    // 坦克颜色
-
     private String username;    // 坦克的玩家号
 
+    private CoordinateGenerator coordinateGenerator;
+
     @Autowired
-    public Tank(String username, CoordinateGenerator coordinateGenerator) {
+    public void setCoordinateGenerator(CoordinateGenerator coordinateGenerator) {
+        this.coordinateGenerator = coordinateGenerator;
+    }
+
+//    @Autowired
+    public Tank(String username) {
         this.username = username;
         Coordinate uniqueCoordinate = coordinateGenerator.generateUniqueCoordinate();
         setX(uniqueCoordinate.getX());
