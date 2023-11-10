@@ -1,5 +1,6 @@
 package com.zh.client;
 
+import com.zh.factory.TankFactory;
 import com.zh.model.Tank;
 import com.zh.model.UserContainer;
 import jakarta.websocket.*;
@@ -39,19 +40,25 @@ public class WebSocket {
     private static final CopyOnWriteArraySet<WebSocket> webSockets = new CopyOnWriteArraySet<>();
     private static final ConcurrentHashMap<String, Session> sessionPool = new ConcurrentHashMap<>();
     private static final AtomicInteger readyUserCount = new AtomicInteger(0);
-
     // 新增等待队列
     private static final Queue<WebSocket> waitingQueue = new LinkedBlockingQueue<>();
-
     // 可能会有多个UserContainer实例（即对战人数达到10以上，每局对战5人的情况下）
     // 我只是举个栗子，打个标记在这里，后续不想要可以删了[doge]
     private Map<String, UserContainer> containerMap = new HashMap<>();
-
+    private TankFactory tankFactory;    // 坦克工厂类
     private Session session;
     private String username;
+    private ApplicationContext applicationContext;  // 应用上下文类
 
     @Autowired
-    private ApplicationContext applicationContext;
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    @Autowired
+    public void setTankFactory(TankFactory tankFactory) {
+        this.tankFactory = tankFactory;
+    }
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
@@ -92,7 +99,6 @@ public class WebSocket {
     @OnError
     public void onError(Session session, Throwable error) {
         log.error("用户错误，原因： {}", error.getMessage());
-//        error.printStackTrace();
     }
 
     public void sendAllMessage(String message) {
@@ -135,7 +141,7 @@ public class WebSocket {
 
         UserContainer container = new UserContainer();
         for (WebSocket webSocket : waitingQueue) {
-            Tank tank = new Tank(webSocket.getUsername());
+            Tank tank = tankFactory.createTank(webSocket.getUsername());
             container.addTank(tank);
 
             // 这里将 container 存储起来，供后续使用

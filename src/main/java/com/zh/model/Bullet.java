@@ -15,18 +15,11 @@ import org.springframework.stereotype.Component;
  */
 @Getter
 @Setter
-@Component
-//@Scope("prototype")
 public class Bullet extends Coordinate {
-//    private Coordinate coordinate;
-
     private int speed;
-
     private int direct;
 
-//    @Autowired
     public Bullet() {
-//        this.coordinate = coordinate;
         this.speed = 0;
         this.direct = 0;
     }
