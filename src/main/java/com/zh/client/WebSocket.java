@@ -158,6 +158,6 @@ public class WebSocket {
 
     @Bean
     public Map<String, UserContainer> getContainerMap() {
-        return containerMap;
+        return this.containerMap;
     }
 }

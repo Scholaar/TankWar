@@ -5,9 +5,11 @@ import com.zh.model.Bullet;
 import com.zh.model.CoordinateGenerator;
 import com.zh.model.UserContainer;
 import com.zh.model.Tank;
+import org.springframework.boot.test.mock.mockito.MockBean;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
+import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import java.util.Map;
 
@@ -16,6 +18,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @SpringBootTest
 class GamePoolTest {
+    @MockBean
+    private ServerEndpointExporter serverEndpointExporter;
 
     @Autowired
     private GamePool gamePool;
@@ -26,7 +30,7 @@ class GamePoolTest {
     @Test
     void testCheckTankBulletCollision() {
         // 创建坦克
-        Tank tank = new Tank("player1", coordinateGenerator);
+        Tank tank = new Tank("player1");
         tank.setX(10);
         tank.setY(10);
 

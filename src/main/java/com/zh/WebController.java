@@ -9,7 +9,9 @@ import org.springframework.stereotype.Controller;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.socket.config.annotation.EnableWebSocket;
 
-@ComponentScan(basePackages = {"com.zh.controller", "com.zh.service", "com.zh.config", "com.zh.client", "com.zh.game", "com.zh.model"})
+
+@ComponentScan(basePackages = {"com.zh.controller", "com.zh.service", "com.zh.config", "com.zh.client", "com.zh.model", "com.zh.game"})
+
 @SpringBootApplication
 @RestController
 public class WebController {
