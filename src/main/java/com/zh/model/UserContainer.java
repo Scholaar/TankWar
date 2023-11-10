@@ -28,9 +28,9 @@ public class UserContainer {
 
     public void removeTank(Tank tank) {
         tanks.remove(tank);
-    }
+    }   // 移除坦克
 
     public Set<Tank> getTanks() {
         return tanks;
-    }
+    }   // 获取坦克集合
 }

@@ -38,8 +38,8 @@ public class Tank extends Coordinate {
         setY(uniqueCoordinate.getY());
     }
 
-    public Bullet fire(int speed, int direct) {
-        Bullet bullet = applicationContext.getBean(Bullet.class);
+    public Bullet fire(int speed, int direct) {    // 坦克开火
+        Bullet bullet = applicationContext.getBean(Bullet.class);    // 从容器中获取子弹实例
 
         // 设置X, Y坐标值
         bullet.setX(this.getX());

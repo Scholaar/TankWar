@@ -27,7 +27,7 @@ public class CoordinateGenerator {
         this.random = new Random();
     }
 
-    public Coordinate generateUniqueCoordinate() {
+    public Coordinate generateUniqueCoordinate() {    // 生成不重复的坐标
         int maxAttempts = 1000; // 最大尝试次数，避免无限循环
 
         for (int i = 0; i < maxAttempts; i++) {
