@@ -1,5 +1,6 @@
 package com.zh.client;
 
+import com.alibaba.fastjson2.JSONObject;
 import com.zh.factory.TankFactory;
 import com.zh.model.Tank;
 import com.zh.model.UserContainer;
@@ -77,22 +78,51 @@ public class WebSocket {
         log.info("[Websocket 消息] 连接断开，总数为: {}", webSockets.size());
     }
 
+    /**
+     * 期望的传输格式
+     * {
+     *     "action": 1, // 0:准备就绪，即将开始比赛   1:移动  2:发射子弹
+     * }
+     **/
     @OnMessage
     public void onMessage(String message) {
         log.info("[Websocket 消息] 收到客户端消息: {}", message);
-        if ("isReady".equals(message)) {
-            // 进行计数
-            int readyCount = readyUserCount.incrementAndGet();
-            log.info("加入第{}号池", readyCount % 5);
 
-            // 将当前 WebSocket 加入等待队列
-            waitingQueue.add(this);
+        // 将消息转成 JSON 对象
+        JSONObject jsonMessage = JSONObject.parseObject(message);
 
-            if (waitingQueue.size() >= 5) {
-                // 当等待队列大小达到5时，处理等待者
-                handleWaitingQueue();
-                readyUserCount.set(readyUserCount.get() - 5);   // 减5，继续计数
-            }
+        switch (jsonMessage.getIntValue("action")) {
+            case 0:
+                // 处理准备就绪的逻辑
+                log.info("ID:{}\t准备就绪，即将开始比赛", this.username);
+                // 进行计数
+                int readyCount = readyUserCount.incrementAndGet();
+                log.info("加入第{}号池", readyCount % 5);
+
+                // 将当前 WebSocket 加入等待队列
+                waitingQueue.add(this);
+
+                if (waitingQueue.size() >= 5) {
+                    // 当等待队列大小达到5时，处理等待者
+                    handleWaitingQueue();
+                    readyUserCount.set(readyUserCount.get() - 5);   // 减5，继续计数
+                }
+                break;
+
+            case 1:
+                // 处理移动的逻辑
+                log.info("ID:{}\t移动", this.username);
+                break;
+
+            case 2:
+                // 处理发射子弹的逻辑
+                log.info("发射子弹");
+                break;
+
+            default:
+                // 处理未知动作的逻辑
+//                log.warn("未知的动作: {}", action);
+                break;
         }
     }
 

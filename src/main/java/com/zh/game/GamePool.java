@@ -3,7 +3,6 @@ package com.zh.game;
 import com.zh.model.Bullet;
 import com.zh.model.Coordinate;
 import com.zh.model.UserContainer;
-import com.zh.model.Tank;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
@@ -94,24 +93,32 @@ public class GamePool {
 
     // 检测子弹和坦克的碰撞,将子弹和坦克的坐标通过Coordinate中的hashCode计算，将计算后的数据存在在哈希表中，当发现哈希表中存在相同的数据时，即为碰撞
     public void checkTankBulletCollision(Bullet bullet) {
-        // 获取子弹的坐标
-        Coordinate bulletCoordinate = new Coordinate(bullet.getX(), bullet.getY());
+//        // 获取子弹的坐标
+//        Coordinate bulletCoordinate = new Coordinate(bullet.getX(), bullet.getY());
+//
+//        // 遍历所有坦克池
+//        for (UserContainer tankContainer : tankPool.values()) {
+//            // 遍历当前坦克池中的所有坦克
+//            for (Tank tank : tankContainer.getTanks()) {
+//                // 获取当前坦克的坐标
+//                Coordinate tankCoordinate = new Coordinate(tank.getX(), tank.getY());
+//
+//                // 检查子弹和坦克是否发生碰撞
+//                if (bulletCoordinate.equals(tankCoordinate)) {
+//                    // 1. 移除坦克
+//                    tankContainer.removeTank(tank);
+//                    // 2. 移除子弹
+//                    gamePool.remove(bullet);
+//                }
+//            }
+//        }
 
-        // 遍历所有坦克池
+        // 上述代码是没有必要的，双重for循环所需要的时间服务器可能无法实现，故而采用了HashSet作为容器
+        // HashSet的优点是查找的时间复杂度最优为O(1)，最坏为O(n)。在精心设计的hashcode存在下，几乎不可能达到最坏
+
         for (UserContainer tankContainer : tankPool.values()) {
-            // 遍历当前坦克池中的所有坦克
-            for (Tank tank : tankContainer.getTanks()) {
-                // 获取当前坦克的坐标
-                Coordinate tankCoordinate = new Coordinate(tank.getX(), tank.getY());
-
-                // 检查子弹和坦克是否发生碰撞
-                if (bulletCoordinate.equals(tankCoordinate)) {
-                    // 1. 移除坦克
-                    tankContainer.removeTank(tank);
-                    // 2. 移除子弹
-                    gamePool.remove(bullet);
-                }
-            }
+            Set<Coordinate> tanks = tankContainer.getTanks();
+            tanks.remove(bullet);
         }
     }
 
@@ -119,8 +126,8 @@ public class GamePool {
     // 检测子弹和墙的碰撞
     public void checkWallBulletCollision(Bullet bullet) {
         // 获取子弹的坐标
-        Coordinate bulletCoordinate = new Coordinate(bullet.getX(), bullet.getY());
-        if (walls.contains(bulletCoordinate)) {
+//        Coordinate bulletCoordinate = new Coordinate(bullet.getX(), bullet.getY());   // 本身就是Coordinate的子类，没必要
+        if (walls.contains(bullet)) {
             // 子弹与墙体碰撞逻辑
             gamePool.remove(bullet);
         }
