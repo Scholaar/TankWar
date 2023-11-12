@@ -1,5 +1,6 @@
 package com.zh.model;
 
+import lombok.Getter;
 import java.util.Set;
 import java.util.HashSet;
 
@@ -10,8 +11,9 @@ import java.util.HashSet;
  * @Date 2023/10/31 1:05
  * @version 1.0
  */
+@Getter
 public class UserContainer {
-    private final Set<Tank> tanks;
+    private final Set<Coordinate> tanks;
 
     public UserContainer() {
         this.tanks = new HashSet<>();
@@ -26,11 +28,13 @@ public class UserContainer {
         }
     }
 
-    public void removeTank(Tank tank) {
-        tanks.remove(tank);
+    /**
+     * TODO 坦克移动方法，待实现
+     */
+    public void moveTank(Tank tank) {
     }
 
-    public Set<Tank> getTanks() {
-        return tanks;
-    }
+    public void removeTank(Tank tank) {
+        tanks.remove(tank);
+    }   // 移除坦克
 }

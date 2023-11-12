@@ -1,5 +1,7 @@
 package com.zh.client;
 
+import com.alibaba.fastjson2.JSONObject;
+import com.zh.factory.TankFactory;
 import com.zh.model.Tank;
 import com.zh.model.UserContainer;
 import jakarta.websocket.*;
@@ -39,19 +41,25 @@ public class WebSocket {
     private static final CopyOnWriteArraySet<WebSocket> webSockets = new CopyOnWriteArraySet<>();
     private static final ConcurrentHashMap<String, Session> sessionPool = new ConcurrentHashMap<>();
     private static final AtomicInteger readyUserCount = new AtomicInteger(0);
-
     // 新增等待队列
     private static final Queue<WebSocket> waitingQueue = new LinkedBlockingQueue<>();
-
     // 可能会有多个UserContainer实例（即对战人数达到10以上，每局对战5人的情况下）
     // 我只是举个栗子，打个标记在这里，后续不想要可以删了[doge]
     private Map<String, UserContainer> containerMap = new HashMap<>();
-
+    private TankFactory tankFactory;    // 坦克工厂类
     private Session session;
     private String username;
+    private ApplicationContext applicationContext;  // 应用上下文类
 
     @Autowired
-    private ApplicationContext applicationContext;
+    public void setApplicationContext(ApplicationContext applicationContext) {
+        this.applicationContext = applicationContext;
+    }
+
+    @Autowired
+    public void setTankFactory(TankFactory tankFactory) {
+        this.tankFactory = tankFactory;
+    }
 
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
@@ -70,29 +78,57 @@ public class WebSocket {
         log.info("[Websocket 消息] 连接断开，总数为: {}", webSockets.size());
     }
 
+    /**
+     * 期望的传输格式
+     * {
+     *     "action": 1, // 0:准备就绪，即将开始比赛   1:移动  2:发射子弹
+     * }
+     **/
     @OnMessage
     public void onMessage(String message) {
         log.info("[Websocket 消息] 收到客户端消息: {}", message);
-        if ("isReady".equals(message)) {
-            // 进行计数
-            int readyCount = readyUserCount.incrementAndGet();
-            log.info("加入第{}号池", readyCount % 5);
 
-            // 将当前 WebSocket 加入等待队列
-            waitingQueue.add(this);
+        // 将消息转成 JSON 对象
+        JSONObject jsonMessage = JSONObject.parseObject(message);
 
-            if (waitingQueue.size() >= 5) {
-                // 当等待队列大小达到5时，处理等待者
-                handleWaitingQueue();
-                readyUserCount.set(readyUserCount.get() - 5);   // 减5，继续计数
-            }
+        switch (jsonMessage.getIntValue("action")) {
+            case 0:
+                // 处理准备就绪的逻辑
+                log.info("ID:{}\t准备就绪，即将开始比赛", this.username);
+                // 进行计数
+                int readyCount = readyUserCount.incrementAndGet();
+                log.info("加入第{}号池", readyCount % 5);
+
+                // 将当前 WebSocket 加入等待队列
+                waitingQueue.add(this);
+
+                if (waitingQueue.size() >= 5) {
+                    // 当等待队列大小达到5时，处理等待者
+                    handleWaitingQueue();
+                    readyUserCount.set(readyUserCount.get() - 5);   // 减5，继续计数
+                }
+                break;
+
+            case 1:
+                // 处理移动的逻辑
+                log.info("ID:{}\t移动", this.username);
+                break;
+
+            case 2:
+                // 处理发射子弹的逻辑
+                log.info("发射子弹");
+                break;
+
+            default:
+                // 处理未知动作的逻辑
+//                log.warn("未知的动作: {}", action);
+                break;
         }
     }
 
     @OnError
     public void onError(Session session, Throwable error) {
         log.error("用户错误，原因： {}", error.getMessage());
-//        error.printStackTrace();
     }
 
     public void sendAllMessage(String message) {
@@ -135,7 +171,7 @@ public class WebSocket {
 
         UserContainer container = new UserContainer();
         for (WebSocket webSocket : waitingQueue) {
-            Tank tank = new Tank(webSocket.getUsername());
+            Tank tank = tankFactory.createTank(webSocket.getUsername());
             container.addTank(tank);
 
             // 这里将 container 存储起来，供后续使用

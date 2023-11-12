@@ -51,7 +51,7 @@ public class Coordinate {
 
     /**
      * @author @zhangh
-     * @Description 等值方法，用以确报坐标相等的两个类，在被哈希表的contains()判断时，会返回true
+     * @Description  等值方法，用以确保坐标相等的两个类，在被哈希表的contains()判断时，会返回true
      * @Date 18:07 2023/11/7
      * @param obj
      * @return boolean
@@ -59,8 +59,7 @@ public class Coordinate {
     @Override
     public boolean equals(Object obj) {
         if (this == obj) return true;
-        if (obj == null || getClass() != obj.getClass()) return false;
-        Coordinate other = (Coordinate) obj;
+        if (!(obj instanceof Coordinate other)) return false;
         return x == other.x && y == other.y;
     }
 }
