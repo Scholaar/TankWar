@@ -16,9 +16,9 @@
               <el-form-item label="用户名">
                   <el-input v-model="loginForm.name" />
               </el-form-item>
-              <el-form-item label="邮箱" v-if="!formStatus.isLogin">
+              <!-- <el-form-item label="邮箱" v-if="!formStatus.isLogin">
                   <el-input v-model="loginForm.email" />
-              </el-form-item>
+              </el-form-item> -->
               <el-form-item label="密码">
                   <el-input type="password" v-model="loginForm.password" />
               </el-form-item>
@@ -54,7 +54,7 @@ const loginStatus = ref(false)
 
 const loginForm = ref({
   name: '',
-  email: '',
+//   email: '',
   password: '',
 })
 
@@ -88,7 +88,7 @@ const login = () => {
 }
 
 const register = () => {
-    if(loginForm.value.name == '' || loginForm.value.email == '' || loginForm.value.password == ''){
+    if(loginForm.value.name == '' || loginForm.value.password == ''){
         ElMessage({
             message: "信息不能为空",
             type: 'error',
