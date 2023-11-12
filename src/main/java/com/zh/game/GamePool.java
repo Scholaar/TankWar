@@ -118,7 +118,11 @@ public class GamePool {
 
         for (UserContainer tankContainer : tankPool.values()) {
             Set<Coordinate> tanks = tankContainer.getTanks();
-            tanks.remove(bullet);
+            if (tanks.contains(bullet)) {
+                // 子弹与坦克碰撞逻辑
+                tanks.remove(bullet);
+                gamePool.remove(bullet);
+            }
         }
     }
 
