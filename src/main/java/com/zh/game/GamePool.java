@@ -3,11 +3,13 @@ package com.zh.game;
 import com.zh.model.Bullet;
 import com.zh.model.Coordinate;
 import com.zh.model.UserContainer;
+import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Random;
 import java.util.Set;
 
 /**
@@ -55,6 +57,7 @@ public class GamePool {
         // 要解决的问题： 1、什么时候结束大循环（场上只剩一辆坦克）
         //              2、碰撞检测子弹与坦克（哈希表中子弹与坦克的位置重合）
         //              3、子弹与墙（障碍物坐标初始化）
+        generateWalls();    // 生成墙体坐标
         while (true) {
             for (Bullet bullet : gamePool) {
                 switch (bullet.getDirect()) {
@@ -146,8 +149,9 @@ public class GamePool {
             int y = random.nextInt(bounds.getY()); // 在边界内随机生成y坐标
 
             Coordinate wallCoordinate = new Coordinate(x, y);
-            walls.add(wallCoordinate);
-        }}
+            walls.add(wallCoordinate);    // 将生成的墙体坐标添加到walls集合中
+        }
+    }
 
     public Set<Bullet> getGamePool() {    // 获取子弹池
         return gamePool;

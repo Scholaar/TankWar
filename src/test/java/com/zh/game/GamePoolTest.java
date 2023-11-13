@@ -2,10 +2,7 @@ package com.zh.game;
 
 import com.zh.factory.TankFactory;
 import com.zh.game.GamePool;
-import com.zh.model.Bullet;
-import com.zh.model.CoordinateGenerator;
-import com.zh.model.UserContainer;
-import com.zh.model.Tank;
+import com.zh.model.*;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.junit.jupiter.api.Test;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -13,6 +10,8 @@ import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.web.socket.server.standard.ServerEndpointExporter;
 
 import java.util.Map;
+import java.util.Set;
+
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
@@ -80,5 +79,24 @@ class GamePoolTest {
         // 验证生成的墙体坐标集合是否符合预期
         System.out.println("Generated walls: " + walls);
         assertEquals(10, walls.size(), "Number of generated walls should be 10");
+    }
+
+    // 墙体和子弹碰撞测试
+    @Test
+    void testCheckWallBulletCollision() {
+        // 创建子弹
+        Bullet bullet = new Bullet();
+        bullet.setX(10);
+        bullet.setY(10);
+
+        // 创建墙体坐标
+        gamePool.addWall(new Coordinate(10, 10));
+
+        // 调用checkWallBulletCollision方法，检测碰撞
+        gamePool.checkWallBulletCollision(bullet);
+
+        // 验证子弹是否被移除
+        System.out.println("Bullets after collision: " + gamePool.getGamePool());
+        assertTrue(gamePool.getGamePool().isEmpty(), "Bullet should be removed");
     }
 }
