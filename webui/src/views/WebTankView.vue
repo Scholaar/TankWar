@@ -2,8 +2,7 @@
     <div class="playground">
         <div id="rectangle"
         class="rectangle"
-        :style="{width: resolution.width + 'px', height: resolution.height + 'px'}"
-        >
+        :style="{width: resolution.width + 'px', height: resolution.height + 'px'}">
             <div
             id="square"
             class="square"
@@ -12,8 +11,7 @@
                 top: postionConvertY(tankPosition.myTank.y)+'px',
                 left: postionConvertX(tankPosition.myTank.x)+'px',
                 transform: directionHandler(tankPosition.myTank.direction),
-            }"
-            ></div>
+            }"></div>
 
             <div
             id="square"
@@ -24,8 +22,7 @@
                 top: postionConvertY(enemyTank.y)+'px',
                 left: postionConvertX(enemyTank.x)+'px',
                 transform: directionHandler(enemyTank.direction),
-            }"
-            ></div>
+            }"></div>
 
             <div
             id="square"
@@ -36,8 +33,7 @@
                 top: postionConvertY(bullet.y)+'px',
                 left: postionConvertX(bullet.x)+'px',
                 transform: directionHandler(bullet.direction),
-            }"
-            ></div>
+            }"></div>
         </div>
     </div>
 </template>
@@ -77,6 +73,7 @@ const tankPosition = ref({
 
 const bullets = ref([])
 
+// const action = ref(['0', '1', '2'])
 const resolution = ref({
     width: 1280,
     height: 720
@@ -191,25 +188,36 @@ setInterval(() => {
 }, 50)
 
 // 创建websocket连接，对坦克位置和子弹位置进行赋值
-// const ws = new WebSocket('ws://localhost:8080')
-// ws.onopen = () => {
-//     console.log('ws open')
-// }
-// ws.onmessage = (e) => {
-//     console.log(e.data)
-//     let data = JSON.parse(e.data)
-//     tankPosition.value = data.tankPosition
-//     bullets.value = data.bullets
-// }
-// ws.onclose = () => {
-//     console.log('ws close')
-// }
+const ws = new WebSocket('ws://localhost:8080/websocket/123')
+ws.onopen = () => {
+    console.log('ws open')
+}
+ws.onmessage = (e) => {
+    console.log(e.data)
+    let data = JSON.parse(e.data)
+    tankPosition.value = data.tankPosition
+    bullets.value = data.bullets
+    // action.value = data.action
+}
+ws.onclose = () => {
+    console.log('ws close')
+}
 watch(tankPosition.value.myTank, (newValue, oldValue) => {
-    // ws.send(JSON.stringify({
-    //     "tankPosition": newValue,
-    //     "bullets": bullets.value
-    // }))
-    // console.log(newValue)
+    ws.send(JSON.stringify({
+        "tankPosition": newValue,
+        "bullets": bullets.value,
+        "action": '1'
+    }))
+    console.log(newValue)
+})
+watch(() => bullets.value.length, (newValue, oldValue) => {
+  ws.send(JSON.stringify({
+    "tankPosition": newValue,
+    // "bullets": bullets.value,
+    "bullets": bullets.value[newValue - 1],
+    "action": '2'
+  }))
+  console.log(newValue)
 })
 </script>
 

@@ -3,8 +3,10 @@ package com.zh;
 import org.springframework.boot.Banner;
 import org.springframework.boot.SpringApplication;
 import org.springframework.boot.autoconfigure.SpringBootApplication;
+import org.springframework.context.annotation.ComponentScan;
 import org.springframework.web.bind.annotation.*;
 
+@ComponentScan(basePackages = {"com.zh.controller","com.zh.service","com.zh.client","com.zh.factory","com.zh.model","com.zh.game"})
 @SpringBootApplication
 @RestController
 public class WebController {

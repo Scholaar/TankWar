@@ -25,6 +25,10 @@ import java.util.concurrent.LinkedBlockingQueue;
 import java.util.concurrent.atomic.AtomicInteger;
 
 /**
+ * WebSocket服务器端，处理Tank游戏中的实时通信
+ */
+
+/**
  * @ClassName CoordinateGenerator
  * @Description socket消息生成类及管理类
  * @Author @zhangh
@@ -38,18 +42,32 @@ import java.util.concurrent.atomic.AtomicInteger;
 @Getter
 public class WebSocket {
 
+    // 存储所有WebSocket实例，保证线程安全
     private static final CopyOnWriteArraySet<WebSocket> webSockets = new CopyOnWriteArraySet<>();
+
+    // 存储用户和其对应的WebSocket会话
     private static final ConcurrentHashMap<String, Session> sessionPool = new ConcurrentHashMap<>();
+
+    // 记录准备就绪的用户数量
     private static final AtomicInteger readyUserCount = new AtomicInteger(0);
-    // 新增等待队列
+
+    // 等待队列，用于存储等待进入游戏的WebSocket实例
     private static final Queue<WebSocket> waitingQueue = new LinkedBlockingQueue<>();
-    // 可能会有多个UserContainer实例（即对战人数达到10以上，每局对战5人的情况下）
-    // 我只是举个栗子，打个标记在这里，后续不想要可以删了[doge]
+
+    // 用户和其对应的UserContainer实例的映射
     private Map<String, UserContainer> containerMap = new HashMap<>();
-    private TankFactory tankFactory;    // 坦克工厂类
+
+    // 坦克工厂类
+    private TankFactory tankFactory;
+
+    // WebSocket会话
     private Session session;
+
+    // 用户名
     private String username;
-    private ApplicationContext applicationContext;  // 应用上下文类
+
+    // 应用上下文类
+    private ApplicationContext applicationContext;
 
     @Autowired
     public void setApplicationContext(ApplicationContext applicationContext) {
@@ -61,6 +79,9 @@ public class WebSocket {
         this.tankFactory = tankFactory;
     }
 
+    /**
+     * WebSocket连接建立时触发
+     */
     @OnOpen
     public void onOpen(Session session, @PathParam("username") String username) {
         this.session = session;
@@ -70,6 +91,9 @@ public class WebSocket {
         log.info("[WebSocket 消息] 有新的连接，总数为: {}", webSockets.size());
     }
 
+    /**
+     * WebSocket连接关闭时触发
+     */
     @OnClose
     public void onClose() {
         webSockets.remove(this);
@@ -79,11 +103,29 @@ public class WebSocket {
     }
 
     /**
-     * 期望的传输格式
+     * 接收客户端消息时触发
+     * 期望的传输格式:
      * {
      *     "action": 1, // 0:准备就绪，即将开始比赛   1:移动  2:发射子弹
      * }
-     **/
+     *
+     * 前端返回的json内容
+     * {
+     *   "tankPosition": {
+     *     "myTank": {
+     *       "x": 100,
+     *       "y": 300,
+     *       "direction": "right"
+     *     },
+     *     "enemyTank": [
+     *       // ... (其他敌方坦克的位置信息)
+     *     ]
+     *   },
+     *   "bullets": [
+     *     // ... (所有子弹的位置信息)
+     *   ]
+     * }
+     */
     @OnMessage
     public void onMessage(String message) {
         log.info("[Websocket 消息] 收到客户端消息: {}", message);
@@ -112,25 +154,43 @@ public class WebSocket {
             case 1:
                 // 处理移动的逻辑
                 log.info("ID:{}\t移动", this.username);
+
+                // 从jsonMessage中获取移动方向和坦克的名称，如direction = "up"
+                String direction = jsonMessage.getString("direction");
+                String tankName = jsonMessage.getString("tankName");
+                // 坦克移动
+
+
                 break;
 
             case 2:
                 // 处理发射子弹的逻辑
                 log.info("发射子弹");
+
+                // 从jsonMessage中获取子弹方向，如direction = "up"
+                String bulletDirection = jsonMessage.getString("direction");
+
+                // 根据方向发射子弹
                 break;
 
             default:
                 // 处理未知动作的逻辑
-//                log.warn("未知的动作: {}", action);
+                log.warn("未知的动作: {}", jsonMessage.getIntValue("action"));
                 break;
         }
     }
 
+    /**
+     * WebSocket错误时触发
+     */
     @OnError
     public void onError(Session session, Throwable error) {
         log.error("用户错误，原因： {}", error.getMessage());
     }
 
+    /**
+     * 向所有连接的WebSocket实例广播消息
+     */
     public void sendAllMessage(String message) {
         log.info("[websocket消息] 广播消息: {}", message);
         for (WebSocket webSocket : webSockets) {
@@ -138,6 +198,9 @@ public class WebSocket {
         }
     }
 
+    /**
+     * 向指定用户发送消息
+     */
     public void sendOneMessage(String username, String message) {
         Session session = sessionPool.get(username);
         if (session != null && session.isOpen()) {
@@ -146,6 +209,9 @@ public class WebSocket {
         }
     }
 
+    /**
+     * 向多个指定用户发送消息
+     */
     public void sendMoreMessage(String[] usernames, String message) {
         for (String username : usernames) {
             Session session = sessionPool.get(username);
@@ -156,6 +222,9 @@ public class WebSocket {
         }
     }
 
+    /**
+     * 发送消息给指定会话
+     */
     private void sendMessage(Session session, String message) {
         try {
             session.getBasicRemote().sendText(message);
@@ -164,34 +233,38 @@ public class WebSocket {
         }
     }
 
+    /**
+     * 处理等待队列中的WebSocket实例，将其移入UserContainer容器中，并进行一些具体的逻辑处理
+     */
     private void handleWaitingQueue() {
-        // 处理等待队列中的 WebSocket 实例，移入 Container 容器中
-        // 这里可以实现具体的逻辑，例如创建与等待者们相等username的Tank类
         log.info("处理等待队列，移入 Container 容器");
 
+        // 创建一个新的UserContainer实例
         UserContainer container = new UserContainer();
+
+        // 遍历等待队列中的WebSocket实例，为每个用户创建坦克，并加入UserContainer
         for (WebSocket webSocket : waitingQueue) {
             Tank tank = tankFactory.createTank(webSocket.getUsername());
             container.addTank(tank);
 
-            // 这里将 container 存储起来，供后续使用
+            // 将 container 存储起来，供后续使用
             containerMap.put(webSocket.getUsername(), container);
         }
 
-        // container.getTanks() 返回一个包含五个 Tank 实例的 Set
-//        container.getTanks().forEach(tank -> {
-//            // 这里可以对每个 Tank 进行一些操作，例如设置坐标等
-//        });
-
-        // 这里可以对 containerMap 进行进一步的操作，或者将其存储在其他地方
-
+        // 清空等待队列
         waitingQueue.clear();
     }
 
+    /**
+     * 获取所有用户的用户名列表
+     */
     public List<String> getUsernames() {
         return List.copyOf(sessionPool.keySet());
     }
 
+    /**
+     * 获取UserContainer实例的映射
+     */
     @Bean
     public Map<String, UserContainer> getContainerMap() {
         return this.containerMap;

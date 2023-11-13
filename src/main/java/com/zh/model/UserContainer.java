@@ -31,7 +31,23 @@ public class UserContainer {
     /**
      * TODO 坦克移动方法，待实现
      */
-    public void moveTank(Tank tank) {
+    public void moveTank(Tank tank,String direction) {
+        switch (direction) {
+            case "up":
+                tank.setY(tank.getY() + tank.getSpeed());
+                break;
+            case "down":
+                tank.setY(tank.getY() - tank.getSpeed());
+                break;
+            case "left":
+                tank.setX(tank.getX() - tank.getSpeed());
+                break;
+            case "right":
+                tank.setX(tank.getX() + tank.getSpeed());
+                break;
+            default:
+                break;
+        }
     }
 
     public void removeTank(Tank tank) {
