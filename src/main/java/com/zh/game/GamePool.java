@@ -21,7 +21,8 @@ import java.util.Set;
 public class GamePool {
 
     private static Set<Bullet> gamePool;   // 存储子弹的池
-
+    
+    @Getter
     private Set<Coordinate> walls;  // 存储墙体的坐标, 墙体坐标初始化
 
     // 这是一个多坦克池，存储形式为<K, V>，键为username，值为对应的坦克池
@@ -136,6 +137,17 @@ public class GamePool {
             gamePool.remove(bullet);
         }
     }
+    public void generateWalls() {
+        Random random = new Random();
+        int numWalls = 10; // 设置生成的墙体数量
+
+        for (int i = 0; i < numWalls; i++) {
+            int x = random.nextInt(bounds.getX()); // 在边界内随机生成x坐标
+            int y = random.nextInt(bounds.getY()); // 在边界内随机生成y坐标
+
+            Coordinate wallCoordinate = new Coordinate(x, y);
+            walls.add(wallCoordinate);
+        }}
 
     public Set<Bullet> getGamePool() {    // 获取子弹池
         return gamePool;
