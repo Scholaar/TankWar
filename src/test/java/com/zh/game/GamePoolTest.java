@@ -69,4 +69,16 @@ class GamePoolTest {
         System.out.println("Bullets after collision: " + gamePool.getGamePool());
         assertTrue(gamePool.getGamePool().isEmpty(), "Bullet should be removed");
     }
+    @Test
+    void testGenerateWalls() {
+        // 调用generateWalls方法生成墙体坐标
+        gamePool.generateWalls();
+
+        // 获取生成的墙体坐标集合
+        Set<Coordinate> walls = gamePool.getWalls();
+
+        // 验证生成的墙体坐标集合是否符合预期
+        System.out.println("Generated walls: " + walls);
+        assertEquals(10, walls.size(), "Number of generated walls should be 10");
+    }
 }
