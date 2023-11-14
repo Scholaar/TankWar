@@ -127,30 +127,14 @@ public class WebSocket {
      * }
      */
     @OnMessage
-    public void onMessage(String message) {
+    public void onMessage(String message) throws IOException {
         log.info("[Websocket 消息] 收到客户端消息: {}", message);
 
         // 将消息转成 JSON 对象
         JSONObject jsonMessage = JSONObject.parseObject(message);
 
         switch (jsonMessage.getIntValue("action")) {
-            case 0:
-                // 处理准备就绪的逻辑
-                log.info("ID:{}\t准备就绪，即将开始比赛", this.username);
-                // 进行计数
-                int readyCount = readyUserCount.incrementAndGet();
-                log.info("加入第{}号池", readyCount % 5);
-
-                // 将当前 WebSocket 加入等待队列
-                waitingQueue.add(this);
-
-                if (waitingQueue.size() >= 5) {
-                    // 当等待队列大小达到5时，处理等待者
-                    handleWaitingQueue();
-                    readyUserCount.set(readyUserCount.get() - 5);   // 减5，继续计数
-                }
-                break;
-
+//            case 0:
             case 1:
                 // 处理移动的逻辑
                 log.info("ID:{}\t移动", this.username);
@@ -174,8 +158,27 @@ public class WebSocket {
                 break;
 
             default:
-                // 处理未知动作的逻辑
-                log.warn("未知的动作: {}", jsonMessage.getIntValue("action"));
+                // 处理准备就绪的逻辑
+                log.info("ID:{}\t准备就绪，即将开始比赛", this.username);
+                // 进行计数
+                int readyCount = readyUserCount.incrementAndGet();
+                log.info("加入第{}号池", readyCount % 5);
+
+                // 将当前 WebSocket 加入等待队列
+                waitingQueue.add(this);
+
+                JSONObject jsonObject = new JSONObject();
+                jsonObject.put("num", waitingQueue.size());
+                String jsonString = jsonObject.toJSONString();
+                for (WebSocket session : waitingQueue) {
+                    session.session.getBasicRemote().sendText(jsonString);
+                }
+
+                if (waitingQueue.size() >= 5) {
+                    // 当等待队列大小达到5时，处理等待者
+                    handleWaitingQueue();
+                    readyUserCount.set(readyUserCount.get() - 5);   // 减5，继续计数
+                }
                 break;
         }
     }

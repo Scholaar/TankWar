@@ -12,7 +12,7 @@
 </template>
 
 <script setup>
-import { ref, watch } from 'vue';
+import { ref, watch, onMounted } from 'vue';
 import Loading from '../components/Loading.vue';
 import router from '../router';
 import useTokenStore from '@/stores/tokenStore'
@@ -22,8 +22,14 @@ const wsData = ref(0)
 const maxNum = ref(5)
 const percentage = ref(0)
 
+// 在 ws 变量被实例化后执行的操作
+onMounted(() => {
+  // 调用某个方法，例如 initWebSocket 方法
+  isReady();
+});
 
-const ws = new WebSocket('ws://localhost:8080?wstoken='+tokenStore.token)
+
+const ws = new WebSocket('ws://localhost:8080/websocket/'+tokenStore.userName)
 ws.onmessage = (event) => {
     wsData.value = JSON.parse(event.data).num
 }
@@ -34,6 +40,15 @@ watch(wsData, (newVal) => {
         router.push('/play')
     }
 })
+
+function isReady() {
+    ws.onopen = () => {
+        // 构造包含 type 属性的 JSON 对象
+        const jsonData = { action: '-1' };
+        ws.send(JSON.stringify(jsonData));
+    }
+}
+
 </script>
 
 <style lang="less" scoped>

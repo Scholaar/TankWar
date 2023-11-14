@@ -82,7 +82,7 @@ const login = () => {
     }
     request.post('/api/login', js).then((res) => {
         console.log(res);
-        tokenStore.token = res.token;
+        tokenStore.userName = res?.username;
         loginStatus.value = true;
     })
 }
@@ -97,7 +97,7 @@ const register = () => {
     }
     let js = {
         "name": loginForm.value.name,
-        "email": loginForm.value.email,
+        // "email": loginForm.value.email,
         "password": loginForm.value.password
     }
     request.post('/api/register', js).then((res) => {

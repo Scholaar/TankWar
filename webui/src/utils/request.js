@@ -12,7 +12,8 @@ const token = () => {
 }
 
 let request = axios.create({
-    baseURL: 'https://mock.apifox.com/m1/3545050-0-default',
+    // baseURL: 'https://mock.apifox.com/m1/3545050-0-default',
+    baseURL: 'http://localhost:8080',
     timeout: 8000,
 });
 

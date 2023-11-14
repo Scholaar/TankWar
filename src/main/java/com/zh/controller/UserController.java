@@ -22,6 +22,7 @@ public class UserController {
     private UserService userService;
 
     @PostMapping("/api/register")
+    @CrossOrigin(origins = "*")
     public ResponseEntity<JSONObject> registerUser(@RequestBody Map<String, Object> body) {
 //        int id = (Integer) body.get("id");
         String username = (String) body.get("name");
@@ -49,6 +50,7 @@ public class UserController {
     }
 
     @PostMapping("/api/login")
+    @CrossOrigin(origins = "*")
 //    @RequestBody
     public JSONObject loginUser(@RequestBody Map<String, Object> body) {
         String username = (String) body.get("name");

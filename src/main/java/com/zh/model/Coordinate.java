@@ -62,4 +62,9 @@ public class Coordinate {
         if (!(obj instanceof Coordinate other)) return false;
         return x == other.x && y == other.y;
     }
+
+    @Override
+    public String toString() {
+        return "{X:\t" + x + "\tY:\t" + y + "}";
+    }
 }
