@@ -17,6 +17,9 @@ public class Tank extends Coordinate {
 
     private String username;    // 坦克的玩家号
 
+    private int Width = 5;  // 坦克宽度
+    private int Height = 5; // 坦克高度
+
     public Tank(String username, CoordinateGenerator coordinateGenerator) {
         this.username = username;
         Coordinate uniqueCoordinate = coordinateGenerator.generateUniqueCoordinate();

@@ -24,4 +24,14 @@ public class Bullet extends Coordinate {
         this.direct = 0;
     }
 
+    // 由于坦克是一个矩形（我们这里假设坦克是10*10，而子弹就是1*1），所以子弹的坐标就是实际的坐标，而坦克的坐标是中心点的坐标
+    // 在这里就是判断子弹是否进入矩形区域，是则返回true，否则返回false
+    public boolean checkCollision(Tank tank) {
+        return this.getX() < tank.getX() + tank.getWidth() &&
+                this.getX() + tank.getWidth() > tank.getX() &&
+                this.getY() < tank.getY() + tank.getHeight() &&
+                this.getY() + tank.getHeight() > tank.getY();
+    }
+
 }
+

@@ -2,6 +2,7 @@ package com.zh.game;
 
 import com.zh.model.Bullet;
 import com.zh.model.Coordinate;
+import com.zh.model.Tank;
 import com.zh.model.UserContainer;
 import lombok.Getter;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -95,18 +96,18 @@ public class GamePool {
         }
     }
 
-    // 检测子弹和坦克的碰撞,将子弹和坦克的坐标通过Coordinate中的hashCode计算，将计算后的数据存在在哈希表中，当发现哈希表中存在相同的数据时，即为碰撞
+    // 检测子弹和坦克的碰撞,遍历坦克池，遍历坦克池中的坦克，判断子弹和坦克是否发生碰撞，即子弹是否进入坦克的矩形区域
     public void checkTankBulletCollision(Bullet bullet) {
-//        // 获取子弹的坐标
+//        //获取子弹的坐标
 //        Coordinate bulletCoordinate = new Coordinate(bullet.getX(), bullet.getY());
-//
-//        // 遍历所有坦克池
-//        for (UserContainer tankContainer : tankPool.values()) {
-//            // 遍历当前坦克池中的所有坦克
-//            for (Tank tank : tankContainer.getTanks()) {
-//                // 获取当前坦克的坐标
+
+        // 遍历所有坦克池
+        for (UserContainer tankContainer : tankPool.values()) {
+//          //遍历当前坦克池中的所有坦克
+            for (Tank tank : tankContainer.getTanks()) {
+//                //获取当前坦克的坐标
 //                Coordinate tankCoordinate = new Coordinate(tank.getX(), tank.getY());
-//
+
 //                // 检查子弹和坦克是否发生碰撞
 //                if (bulletCoordinate.equals(tankCoordinate)) {
 //                    // 1. 移除坦克
@@ -114,20 +115,26 @@ public class GamePool {
 //                    // 2. 移除子弹
 //                    gamePool.remove(bullet);
 //                }
-//            }
-//        }
+                if(bullet.checkCollision(tank)){
+                    // 1. 移除坦克
+                    tankContainer.removeTank(tank);
+                    // 2. 移除子弹
+                    gamePool.remove(bullet);
+                }
+            }
+        }
 
         // 上述代码是没有必要的，双重for循环所需要的时间服务器可能无法实现，故而采用了HashSet作为容器
         // HashSet的优点是查找的时间复杂度最优为O(1)，最坏为O(n)。在精心设计的hashcode存在下，几乎不可能达到最坏
 
-        for (UserContainer tankContainer : tankPool.values()) {
-            Set<Coordinate> tanks = tankContainer.getTanks();
-            if (tanks.contains(bullet)) {
-                // 子弹与坦克碰撞逻辑
-                tanks.remove(bullet);
-                gamePool.remove(bullet);
-            }
-        }
+//        for (UserContainer tankContainer : tankPool.values()) {
+//            Set<Coordinate> tanks = tankContainer.getTanks();
+//            if (tanks.contains(bullet)) {
+//                // 子弹与坦克碰撞逻辑
+//                tanks.remove(bullet);
+//                gamePool.remove(bullet);
+//            }
+//        }
     }
 
 
@@ -157,3 +164,4 @@ public class GamePool {
         return gamePool;
     }
 }
+

@@ -13,7 +13,7 @@ import java.util.HashSet;
  */
 @Getter
 public class UserContainer {
-    private final Set<Coordinate> tanks;
+    private final Set<Tank> tanks;
 
     public UserContainer() {
         this.tanks = new HashSet<>();
