@@ -19,7 +19,7 @@ import useTokenStore from '@/stores/tokenStore'
 
 const tokenStore = useTokenStore()
 const wsData = ref(0)
-const maxNum = ref(5)
+const maxNum = ref(2)
 const percentage = ref(0)
 
 // 在 ws 变量被实例化后执行的操作
@@ -35,9 +35,9 @@ ws.onmessage = (event) => {
 }
 
 watch(wsData, (newVal) => {
-    percentage.value = newVal / 5 * 100
+    percentage.value = newVal / 2 * 100
     if(newVal == maxNum.value){
-        router.push('/play')
+        window.location.href = "http://127.0.0.1:3000"
     }
 })
 

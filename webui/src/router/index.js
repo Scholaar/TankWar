@@ -38,6 +38,11 @@ const router = createRouter({
       name: 'not-found',
       component: () => import('../views/NotFoundView.vue')
     }
+    // {
+    //   path: 'http:127.0.0.1:3000',
+    //   name: 'http:127.0.0.1:3000',
+    //   component: () => import('http:127.0.0.1:3000')
+    // }
   ]
 })
 
