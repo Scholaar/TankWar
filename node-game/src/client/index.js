@@ -42,4 +42,5 @@ function gameOver(){
   $('.ranking').classList.add('hidden')
   $('.delay').classList.add('hidden')
   alert('你GG了，重新进入游戏吧。');
+  window.location.href = 'http://127.0.0.1:5173';
 }
